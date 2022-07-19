@@ -5,19 +5,28 @@ Gene essentiality hackathon for A(square) Rock team.
 
 ## Installation
 
-Follow the following instructions to install the repository:
+### Clone repository
 
 ```shell
 git clone --recurse-submodules https://github.com/otchita-owkin/asquarerock-hackathon
+cd asquarerock-hackathon/
 ```
+
+### Create environement
+
+Create new conda environement using:
 
 ```shell
-cd asquarerock-hackathon/
-conda create -n hackathon_env python=3.8
+conda create -q --prefix /workspace/envs/hackathon_env python=3.8 -y
 conda activate hackathon_env
 ```
+Then add it to notebook kernel using:
 
-Then:
+```shell
+python -m ipykernel install --user --name=hackathon_env
+```
+
+### Install all dependencies
 
 ```shell
 make install
