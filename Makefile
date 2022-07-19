@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-docs clean-pyc clean-build docs help
+.PHONY: clean clean-pyc clean-build help
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -50,7 +50,7 @@ install: clean ## install all package and development dependencies to the active
 	pip install poetry==1.2.0b2
 	poetry install --with=linting
 
-clean: clean-build clean-pyc clean-test clean-docs ## remove all build, test, coverage and Python artifacts
+clean: clean-build clean-pyc ## remove all build, coverage and Python artifacts
 
 clean-build: ## remove build artifacts
 	rm -fr build/
@@ -65,24 +65,12 @@ clean-pyc: ## remove Python file artifacts
 	find . -path ./.venv -prune -false -o -name '*~' -exec rm -f {} +
 	find . -path ./.venv -prune -false -o -name '__pycache__' -exec rm -fr {} +
 
-clean-test: ## remove test and coverage artifacts
-	rm -f .coverage
-	rm -f coverage.xml
-	rm -fr htmlcov/
-	rm -fr .pytest_cache
-	rm -fr .mypy_cache
-	rm -fr prof/
-
-clean-docs: ## remove docs artifacts
-	rm -fr docs/_build
-	rm -fr docs/api
-
 format: ## format code by sorting imports with black
-	black a2rock tests
+	black a2rock
 
 lint: ## check style with flake8
-	flake8 a2rock tests
-	pylint a2rock tests
+	flake8 a2rock
+	pylint a2rock
 
 typing: ## check static typing using mypy
 	mypy a2rock
@@ -91,33 +79,3 @@ pre-commit-checks: ## Run pre-commit checks on all files
 	pre-commit run --hook-stage manual --all-files --show-diff-on-failure
 
 lint-all: pre-commit-checks lint typing ## Run all linting checks.
-
-test: ## run tests quickly with the default Python
-	pytest
-
-test-docs: docs-api ## check docs using doc8
-	pydocstyle a2rock
-	doc8 docs
-	$(MAKE) -C docs doctest
-
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source a2rock -m pytest
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
-
-profile:  ## create a profile from test cases
-	$(PROFILE) $(TARGET)
-	$(PROFILE_VIEWER) $(PROFILE_RESULT)
-
-docs-api:  ## generate the API documentation for Sphinx
-	rm -rf docs/api
-	sphinx-apidoc -e -M -o docs/api a2rock
-
-docs: docs-api ## generate Sphinx HTML documentation, including API docs
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
