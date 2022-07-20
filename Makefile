@@ -48,8 +48,9 @@ lock: ## generate a new poetry.lock file (To be done after adding new requiremen
 
 install: clean ## install all package and development dependencies to the active Python's site-packages
 	pip install poetry==1.2.0b2
-	poetry install --with=linting
 	pip install -e hackathon_baseline
+	pip install -r hackathon_baseline/requirements.txt
+	poetry install --with=linting
 
 clean: clean-build clean-pyc ## remove all build, coverage and Python artifacts
 
