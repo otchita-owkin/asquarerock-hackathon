@@ -18,7 +18,7 @@ Create new conda environement using:
 
 ```shell
 conda create -q --prefix /workspace/envs/hackathon_env python=3.8 -y
-conda activate hackathon_env
+conda activate /workspace/envs/hackathon_env
 ```
 Then add it to notebook kernel using:
 
