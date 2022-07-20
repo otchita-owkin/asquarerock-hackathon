@@ -7,6 +7,7 @@ from ge_hack.data import OmicsDataset
 from ge_hack.data.loading import load_rnaseq, load_mutations
 from ge_hack.data.preprocessing import filter_by_freq
 import matplotlib.pyplot as plt
+from torch_geometric.nn import Sequential, GCNConv
 
 class AutoEncoder(torch.nn.Module):
     """
@@ -29,7 +30,8 @@ class AutoEncoder(torch.nn.Module):
         batch_size: int = 16,
         learning_rate: float = 1.0e-3,
         linear: bool = True,
-        device: str = "cuda:0"
+        device: str = "cuda:0",
+        edge_index: List[int] = [], # the typing is wrong here
     ):
         super(AutoEncoder, self).__init__()
 
@@ -44,14 +46,19 @@ class AutoEncoder(torch.nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if self.device.type == "cuda" and device.startswith("cuda"):
             self.device = torch.device(device)
+        
+        self.edge_index = edge_index
 
         hidden.append(repr_dim)
-
         encoder_hidden = hidden
         decoder_hidden = hidden[::-1][1:] if len(hidden) > 1 else []
         decoder_hidden.append(in_features)
 
         encoder_layers = []
+        encoder_layers.append((GCNConv(1, 1), 'x, edge_index -> x'))
+        encoder_layers.append(torch.nn.ReLU(inplace=True))
+        encoder_layers.append((GCNConv(1, 1), 'x, edge_index -> x'))
+        encoder_layers.append(torch.nn.ReLU(inplace=True))
         for h in encoder_hidden:
             encoder_layers.append(torch.nn.Linear(in_features, h, bias=bias))
             if not self.linear:
@@ -75,7 +82,7 @@ class AutoEncoder(torch.nn.Module):
         self.decoder.to(self.device)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        z = self.encoder(x)
+        z = self.encoder(x, self.edge_index)
         return self.decoder(z)
 
     def fit(self, X, split_data):
@@ -197,7 +204,8 @@ if __name__ == "__main__":
                     batch_size=512,
                     learning_rate=1e-4,
                     linear=False,
-                    device="cpu"
+                    device="cpu",
+                    edge_index = #TBD
                              )
     autoencoder_rna.fit(X=X_rna, split_data=True)
     plt.plot(autoencoder_rna.train_loss, color="red", label="train loss")
