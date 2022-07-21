@@ -8,6 +8,8 @@ from ge_hack.data.loading import load_rnaseq, load_mutations
 from ge_hack.data.preprocessing import filter_by_freq
 import matplotlib.pyplot as plt
 from torch_geometric.nn import Sequential, GCNConv
+from torch_geometric.loader import DataLoader
+from torch_geometric.data import Data
 
 class AutoEncoder(torch.nn.Module):
     """
@@ -93,7 +95,8 @@ class AutoEncoder(torch.nn.Module):
             X, X_eval = train_test_split(X)
 
         dataset = OmicsDataset(X)
-        dataloader = torch.utils.data.DataLoader(
+        
+        dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
             shuffle=True,
@@ -108,6 +111,7 @@ class AutoEncoder(torch.nn.Module):
         for epoch in tqdm(range(self.num_epochs), total=self.num_epochs):
             epoch_loss = 0
             for x in dataloader:
+                import ipdb; ipdb.set_trace();
                 x = x.to(self.device)
                 x_hat = self.forward(x)
                 loss = self.criterion(x_hat, x)
@@ -201,16 +205,17 @@ if __name__ == "__main__":
     edge_index = torch.tensor( [[0, 1, 1, 2],
                                 [1, 0, 2, 1]], dtype=torch.long )
 
-    autoencoder_rna = AutoEncoder(in_features=X_rna.shape[1],
-                    repr_dim=300,
-                    hidden=[1000],
-                    bias=False,
-                    num_epochs=20,
-                    dropout=False,
-                    batch_size=512,
-                    learning_rate=1e-4,
-                    linear=False,
-                    device="cpu",
+    autoencoder_rna = AutoEncoder(
+                    in_features=X_rna.shape[1],
+                    repr_dim = 128,
+                    hidden = [ 1024 ],
+                    bias = False,
+                    num_epochs = 20,
+                    dropout = True,
+                    batch_size = 32,
+                    learning_rate = 1e-4,
+                    linear = False,
+                    device = "cpu",
                     edge_index = edge_index,
                              )
     autoencoder_rna.fit(X=X_rna, split_data=True)
