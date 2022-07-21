@@ -31,8 +31,10 @@ class AutoEncoder(torch.nn.Module):
         learning_rate: float = 1.0e-3,
         linear: bool = True,
         device: str = "cuda:0",
-        edge_index: List[int] = [], # the typing is wrong here
-    ):
+        edge_index = torch.tensor( [[0, 1, 1, 2], 
+                                    [1, 0, 2, 1]], dtype=torch.long ),
+        ):
+
         super(AutoEncoder, self).__init__()
 
         self.criterion = torch.nn.MSELoss()
@@ -66,7 +68,7 @@ class AutoEncoder(torch.nn.Module):
             if self.dropout:
                 encoder_layers.append(torch.nn.Dropout(self.dropout))
             in_features = h
-        self.encoder = torch.nn.Sequential(*encoder_layers)
+        self.encoder = Sequential('x, edge_index', encoder_layers)
 
         decoder_layers = []
         for h in decoder_hidden:
@@ -195,6 +197,10 @@ if __name__ == "__main__":
     print(X_rna.shape)
 
     print(torch.cuda.is_available())
+
+    edge_index = torch.tensor( [[0, 1, 1, 2],
+                                [1, 0, 2, 1]], dtype=torch.long )
+
     autoencoder_rna = AutoEncoder(in_features=X_rna.shape[1],
                     repr_dim=300,
                     hidden=[1000],
@@ -205,7 +211,7 @@ if __name__ == "__main__":
                     learning_rate=1e-4,
                     linear=False,
                     device="cpu",
-                    edge_index = #TBD
+                    edge_index = edge_index,
                              )
     autoencoder_rna.fit(X=X_rna, split_data=True)
     plt.plot(autoencoder_rna.train_loss, color="red", label="train loss")
